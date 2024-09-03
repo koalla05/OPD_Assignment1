@@ -1,0 +1,3 @@
+C:/Users/kovko/CLionProjects/OPD_Assignment1/cmake-build-debug/CMakeFiles/OPD_Assignment1.dir
+C:/Users/kovko/CLionProjects/OPD_Assignment1/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/kovko/CLionProjects/OPD_Assignment1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
