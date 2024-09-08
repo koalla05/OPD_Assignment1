@@ -8,9 +8,10 @@
 using namespace std;
 
 struct Ticket {
+    string place;
     string userName;
     long id;
-    Ticket(const string& inName, const long& inId): userName(inName), id(inId){}
+    Ticket(const string& inName, const long& inId, const string& inPlace): userName(inName), id(inId), place(inPlace){}
 };
 
 struct Node {
@@ -26,7 +27,7 @@ class Airplane {
     string date;
     int numSeat, maxSeat;
     vector<int> booking;
-    vector<list<unordered_map<Ticket*, string>>> linkedLists;
+    vector<list<unordered_map<long, Ticket*>>> linkedLists;
     map<string, string> pricing;
     long id;
 public:
@@ -41,18 +42,32 @@ public:
     }
 
     void book(string seat, string userName) {
-        unordered_map<Ticket*, string> data;
+        unordered_map<long, Ticket*> data;
 
         string row = seat.substr(0, seat.size() - 1);
         string place = seat.substr(seat.size() - 1);
 
-        Ticket* ticket = new Ticket(userName, id); //made ticket
+        Ticket* ticket = new Ticket(userName, id, place); //made ticket
 
-        data[ticket] = place; //made a map
+        data[ticket->id] = ticket; //made a map
         //add this as a list element
         linkedLists[stoi(row) - 1].push_front(data); //-1 because it starts with zero
         cout << "Booked row " << row << " place " << place << " id " << id << endl;
         id++;
+    }
+
+    void findDelete(const long& ticketId){
+        for (size_t i = 0; i < booking.size(); ++i) {
+            int startIndex = booking[i];
+
+            if (!linkedLists[startIndex].empty()) {
+                auto& lists = linkedLists[startIndex];
+
+                lists.remove_if([&ticketId](auto& map) {
+                    return map.find(ticketId) != map.end();
+                });
+            }
+        }
     }
 };
 
@@ -127,6 +142,14 @@ public:
             plane->book(place, userName);
         }
     }
+
+    void returnTicket(const long& id){
+        for (auto& pair : airport.planes) {
+            const auto& key = pair.first;
+            Airplane* airplane = pair.second;
+            airplane->findDelete(id);
+        }
+    }
 };
 
 int main()
@@ -136,6 +159,7 @@ int main()
     file.read();
     Helper helper(myAirport);
     helper.book("01.01.2023", "JK321", "1A", "Alla");
-    helper.book("01.01.2023", "JK321", "2B", "JK");
+    helper.book("01.01.2023", "JK321", "1C", "V");
+    helper.returnTicket(1);
     return 0;
 }
