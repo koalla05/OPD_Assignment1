@@ -117,7 +117,6 @@ public:
             }
         }
     }
-
 };
 
 struct pair_hash {
@@ -214,7 +213,7 @@ public:
             if (mapIt != nullptr) {
                 cout << "Flight " << key.first << ", " << key.second
                      << ", seat " << mapIt->second->place
-                     << ", price " << airplane->getPrice(mapIt->second->row) << endl;
+                     << ", price " << airplane->getPrice(mapIt->second->row) << ", " << mapIt->second->userName << endl;
                 found = true;
             }
         }
@@ -231,6 +230,20 @@ public:
             airplane->view();
         }
     }
+
+    void view(const string& userName) {
+        int k = 1;
+        if (userIds.find(userName) != userIds.end()) {
+            const vector<long>& ids = userIds[userName];
+
+            for (long id : ids) {
+                cout << k << ". ";
+                view(id);
+                k++;
+            }
+        } else cout << "Sorry, it seems like nobode with sucn a name booked a place" << endl;
+
+    }
 };
 
 int main()
@@ -243,8 +256,9 @@ int main()
     helper.book("03.01.2023", "LM654", "40B", "Alla");
     helper.book("01.01.2023", "JK321", "1C", "V");
     //helper.returnTicket(1);
-    helper.view(2);
-    helper.view(1);
-    helper.view("01.01.2023", "JK321");
+    //helper.view(2);
+    //helper.view(1);
+    //helper.view("01.01.2023", "JK321");
+    helper.view("Alla");
     return 0;
 }
