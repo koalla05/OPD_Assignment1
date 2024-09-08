@@ -99,6 +99,25 @@ public:
         return {};
     }
 
+    void view() {
+        for (size_t i = 0; i < booking.size(); ++i) {
+            int startIndex = booking[i];
+
+            if (!linkedLists[startIndex].empty()) {
+                auto& lists = linkedLists[startIndex];
+
+                for (auto& map : lists) {
+                    for (auto& entry : map) {
+                        const Ticket* ticket = entry.second; 
+                        string price = getPrice(to_string(startIndex));
+
+                        cout << ticket->row << ticket->place<< " " << ticket->userName << " " << price << endl;
+                    }
+                }
+            }
+        }
+    }
+
 };
 
 struct pair_hash {
@@ -200,6 +219,14 @@ public:
             cout << "No such ticket has been found." << endl;
         }
     }
+
+    void view(const string& date, const string& flight) {
+        for (const auto& pair : airport.planes) {
+            const auto& key = pair.first;
+            Airplane* airplane = pair.second;
+            airplane->view();
+        }
+    }
 };
 
 int main()
@@ -210,8 +237,9 @@ int main()
     Helper helper(myAirport);
     helper.book("01.01.2023", "JK321", "1A", "Alla");
     helper.book("01.01.2023", "JK321", "1C", "V");
-    helper.returnTicket(1);
+    //helper.returnTicket(1);
     helper.view(2);
     helper.view(1);
+    helper.view("01.01.2023", "JK321");
     return 0;
 }
