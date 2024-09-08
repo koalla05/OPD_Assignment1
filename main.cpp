@@ -15,14 +15,6 @@ struct Ticket {
     Ticket(const string& inName, const long& inId, const string& inPlace, const string& inRow): userName(inName), id(inId), place(inPlace), row(inRow){}
 };
 
-struct Node {
-    unordered_map<Ticket*, string> data;
-    Node* next;
-
-    Node(unordered_map<Ticket*, string> inData): data(inData), next(nullptr){}
-};
-
-
 class Airplane {
     string flight;
     string date;
@@ -185,6 +177,10 @@ class Helper {
 public:
     Helper (Airport& myAirport): airport(myAirport), id(1){}
 
+    void check(const string& date, const string& flight) {
+
+    }
+
     void book(const string& date, const string& flight, const string& place, const string& userName) {
         auto plane = airport.planes[make_pair(date, flight)];
         if (plane==NULL)
@@ -227,6 +223,7 @@ public:
         for (const auto& pair : airport.planes) {
             const auto& key = pair.first;
             Airplane* airplane = pair.second;
+            if (key.first == date && key.second == flight)
             airplane->view();
         }
     }
@@ -258,7 +255,7 @@ int main()
     //helper.returnTicket(1);
     //helper.view(2);
     //helper.view(1);
-    //helper.view("01.01.2023", "JK321");
-    helper.view("Alla");
+    helper.view("01.01.2023", "JK321");
+    //helper.view("Alla");
     return 0;
 }
