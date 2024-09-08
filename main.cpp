@@ -30,10 +30,10 @@ class Airplane {
     vector<int> booking;
     vector<list<unordered_map<long, Ticket*>>> linkedLists;
     map<string, string> pricing;
-    long id;
+
 public:
     Airplane(const string& inDate, const string& inFlight, const int& inSeatNum, const map<string, string> inPricing):
-    date(inDate), flight(inFlight), numSeat(inSeatNum), pricing(inPricing), id(1) {
+    date(inDate), flight(inFlight), numSeat(inSeatNum), pricing(inPricing) {
 
         maxSeat = stoi(pricing.rbegin()->first);
         for (int i=0; i <maxSeat; i++) {
@@ -45,7 +45,7 @@ public:
         auto price = pricing.lower_bound(row)->second;
         return price;
     }
-    void book(string seat, string userName) {
+    void book(string seat, string userName, const long id) {
         unordered_map<long, Ticket*> data;
 
         string row = seat.substr(0, seat.size() - 1);
@@ -57,7 +57,7 @@ public:
         //add this as a list element
         linkedLists[stoi(row) - 1].push_front(data); //-1 because it starts with zero
         cout << "Confirmed with ID " << id << endl;
-        id++;
+
     }
 
     void findDelete(const long& ticketId){
@@ -108,7 +108,7 @@ public:
 
                 for (auto& map : lists) {
                     for (auto& entry : map) {
-                        const Ticket* ticket = entry.second; 
+                        const Ticket* ticket = entry.second;
                         string price = getPrice(to_string(startIndex));
 
                         cout << ticket->row << ticket->place<< " " << ticket->userName << " " << price << endl;
@@ -180,16 +180,20 @@ public:
 
 
 class Helper {
+    unordered_map<string, vector<long>> userIds;
     Airport airport;
+    long id;
 public:
-    Helper (Airport& myAirport): airport(myAirport){}
+    Helper (Airport& myAirport): airport(myAirport), id(1){}
 
     void book(const string& date, const string& flight, const string& place, const string& userName) {
         auto plane = airport.planes[make_pair(date, flight)];
         if (plane==NULL)
             cout << "Sorry, no airplane in this day with this flight number :(" << endl;
         else {
-            plane->book(place, userName);
+            plane->book(place, userName, id);
+            userIds[userName].push_back(id);
+            id++;
         }
     }
 
@@ -236,6 +240,7 @@ int main()
     file.read();
     Helper helper(myAirport);
     helper.book("01.01.2023", "JK321", "1A", "Alla");
+    helper.book("03.01.2023", "LM654", "40B", "Alla");
     helper.book("01.01.2023", "JK321", "1C", "V");
     //helper.returnTicket(1);
     helper.view(2);
