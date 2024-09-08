@@ -11,7 +11,8 @@ struct Ticket {
     string place;
     string userName;
     long id;
-    Ticket(const string& inName, const long& inId, const string& inPlace): userName(inName), id(inId), place(inPlace){}
+    string row;
+    Ticket(const string& inName, const long& inId, const string& inPlace, const string& inRow): userName(inName), id(inId), place(inPlace), row(inRow){}
 };
 
 struct Node {
@@ -40,14 +41,17 @@ public:
             linkedLists.emplace_back();
         }
     }
-
+    string getPrice(const string& row) {
+        auto price = pricing.lower_bound(row)->second;
+        return price;
+    }
     void book(string seat, string userName) {
         unordered_map<long, Ticket*> data;
 
         string row = seat.substr(0, seat.size() - 1);
         string place = seat.substr(seat.size() - 1);
 
-        Ticket* ticket = new Ticket(userName, id, place); //made ticket
+        Ticket* ticket = new Ticket(userName, id, place, row); //made ticket
 
         data[ticket->id] = ticket; //made a map
         //add this as a list element
@@ -67,15 +71,34 @@ public:
                 for (auto it = lists.begin(); it != lists.end(); ) {
                     auto mapIt = it->find(ticketId);
                     if (mapIt != it->end()) {
-                        auto price = pricing.lower_bound(to_string(startIndex));
+                        string price = getPrice(to_string(startIndex));
                         const Ticket* ticket = mapIt->second;
-                        cout << "Confirmed " << price->second << " refund for " << ticket->userName << endl;
+                        cout << "Confirmed " << price << " refund for " << ticket->userName << endl;
                         it = lists.erase(it);
                     } else ++it;
                 }
             }
         }
     }
+
+    unordered_map<long, Ticket*>::const_iterator view(const long& ticketId) const {
+        for (size_t i = 0; i < booking.size(); ++i) {
+            int startIndex = booking[i];
+
+            if (!linkedLists[startIndex].empty()) {
+                auto& lists = linkedLists[startIndex];
+
+                for (auto it = lists.begin(); it != lists.end(); ) {
+                    auto mapIt = it->find(ticketId);
+                    if (mapIt != it->end())
+                        return mapIt;
+                    else ++it;
+                }
+            }
+        }
+        return {};
+    }
+
 };
 
 struct pair_hash {
@@ -141,6 +164,7 @@ class Helper {
     Airport airport;
 public:
     Helper (Airport& myAirport): airport(myAirport){}
+
     void book(const string& date, const string& flight, const string& place, const string& userName) {
         auto plane = airport.planes[make_pair(date, flight)];
         if (plane==NULL)
@@ -157,6 +181,25 @@ public:
             airplane->findDelete(id);
         }
     }
+
+    void view(const long& id) {
+        bool found = false;
+        for (const auto& pair : airport.planes) {
+            const auto& key = pair.first;
+            Airplane* airplane = pair.second;
+            auto mapIt = airplane->view(id);
+            if (mapIt != nullptr) {
+                cout << "Flight " << key.first << ", " << key.second
+                     << ", seat " << mapIt->second->place
+                     << ", price " << airplane->getPrice(mapIt->second->row) << endl;
+                found = true;
+            }
+        }
+
+        if (!found) {
+            cout << "No such ticket has been found." << endl;
+        }
+    }
 };
 
 int main()
@@ -168,5 +211,7 @@ int main()
     helper.book("01.01.2023", "JK321", "1A", "Alla");
     helper.book("01.01.2023", "JK321", "1C", "V");
     helper.returnTicket(1);
+    helper.view(2);
+    helper.view(1);
     return 0;
 }
