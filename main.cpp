@@ -52,20 +52,27 @@ public:
         data[ticket->id] = ticket; //made a map
         //add this as a list element
         linkedLists[stoi(row) - 1].push_front(data); //-1 because it starts with zero
-        cout << "Booked row " << row << " place " << place << " id " << id << endl;
+        cout << "Confirmed with ID " << id << endl;
         id++;
     }
 
     void findDelete(const long& ticketId){
+        //string price;
         for (size_t i = 0; i < booking.size(); ++i) {
             int startIndex = booking[i];
 
             if (!linkedLists[startIndex].empty()) {
                 auto& lists = linkedLists[startIndex];
 
-                lists.remove_if([&ticketId](auto& map) {
-                    return map.find(ticketId) != map.end();
-                });
+                for (auto it = lists.begin(); it != lists.end(); ) {
+                    auto mapIt = it->find(ticketId);
+                    if (mapIt != it->end()) {
+                        auto price = pricing.lower_bound(to_string(startIndex));
+                        const Ticket* ticket = mapIt->second;
+                        cout << "Confirmed " << price->second << " refund for " << ticket->userName << endl;
+                        it = lists.erase(it);
+                    } else ++it;
+                }
             }
         }
     }
