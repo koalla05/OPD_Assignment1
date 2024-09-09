@@ -243,8 +243,9 @@ public:
             auto mapIt = airplane->view(id);
             if (mapIt != nullptr) {
                 cout << "Flight " << key.first << ", " << key.second
-                     << ", seat " << mapIt->second->place
-                     << ", price " << airplane->getPrice(mapIt->second->row) << ", " << mapIt->second->userName << endl;
+                     << ", seat " << mapIt->second->row << mapIt->second->place
+                     << ", price " << airplane->getPrice(to_string(stoi(mapIt->second->row) - 1)) << ", " << mapIt->
+                     second->userName << endl;
                 found = true;
             }
         }
@@ -284,14 +285,13 @@ int main()
     FileReader file(myAirport);
     file.read();
     Helper helper(myAirport);
-    //helper.book("01.01.2023", "JK321", "1A", "Alla");
-    //helper.book("03.01.2023", "LM654", "40B", "Alla");
-    //helper.book("01.01.2023", "JK321", "1C", "V");
-    //helper.returnTicket(1);
-    //helper.view(2);
-    //helper.view(1);
-    //helper.view("01.01.2023", "JK321");
-    //helper.view("Alla");
-    helper.check("07.03.2023", "PA345");
+    //helper.check("07.03.2023", "PA345");
+    helper.book("07.03.2023", "PA345", "10A", "Alla");
+    helper.book("09.03.2023", "LB567", "30B", "Oliver");
+    helper.book("11.03.2023", "NM678", "2D", "Alla");
+    //helper.view("Alla"); //delete user?
+    helper.view(2);
+    helper.returnTicket(1);
+    helper.view("09.03.2023", "LB567");
     return 0;
 }
