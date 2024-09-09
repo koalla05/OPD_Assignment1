@@ -21,22 +21,24 @@ class Airplane {
     int numSeat, maxSeat;
     vector<int> booking;
     vector<list<unordered_map<long, Ticket*>>> linkedLists;
-    map<string, string> pricing;
+    map<int, string> pricing;
 
 public:
-    Airplane(const string& inDate, const string& inFlight, const int& inSeatNum, const map<string, string> inPricing):
+    Airplane(const string& inDate, const string& inFlight, const int& inSeatNum, const map<int, string> inPricing):
     date(inDate), flight(inFlight), numSeat(inSeatNum), pricing(inPricing) {
 
-        maxSeat = stoi(pricing.rbegin()->first);
+        maxSeat = pricing.rbegin()->first;
         for (int i=0; i <maxSeat; i++) {
             booking.push_back(i);
             linkedLists.emplace_back();
         }
     }
     string getPrice(const string& row) {
-        auto price = pricing.lower_bound(row)->second;
-        return price;
+        auto it = pricing.lower_bound(stoi(row));
+
+        return it->second;
     }
+
     void book(string seat, string userName, const long id) {
         unordered_map<long, Ticket*> data;
 
@@ -109,6 +111,34 @@ public:
             }
         }
     }
+
+    void check() {
+        for (size_t i = 0; i < booking.size(); ++i) {
+            vector takenPlaces(numSeat, false);
+            int startIndex = booking[i];
+
+            if (linkedLists[startIndex].empty()) {
+                for (char i = 'A'; i < 'A' + numSeat; i++) {
+                    string price = getPrice(to_string(startIndex));
+                    cout << startIndex + 1<< i << " " << price << endl;
+                }
+            }
+            else {
+                auto& lists = linkedLists[startIndex];
+                for (auto& map : lists) {
+                    for (auto& entry : map) {
+                        takenPlaces[entry.second->place[0] - 'A'] = true;
+                    }
+                }
+                for (char i = 'A'; i < 'A' + numSeat; i++) {
+                    if (!takenPlaces[i - 'A']) {
+                        string price = getPrice(to_string(startIndex));
+                        cout << startIndex + 1 << i << " " << price << endl;
+                    }
+                }
+            }
+        }
+    }
 };
 
 struct pair_hash {
@@ -123,7 +153,7 @@ class Airport {
 public:
     unordered_map<pair<string, string>, Airplane*, pair_hash> planes;
     Airport() {}
-    void addPlane(string inFlight, string inDate, int inSeatNum, map<string, string> inPricing) {
+    void addPlane(string inFlight, string inDate, int inSeatNum, map<int, string> inPricing) {
 
         planes[make_pair(inDate, inFlight)] = new Airplane (inDate, inFlight, inSeatNum, inPricing);
     }
@@ -137,7 +167,7 @@ class FileReader {
     int numRow;
     string price, seats;
     string endSeat;
-    map<string, string> pricing;
+    map<int, string> pricing;
     Airport& airport;
 public:
     FileReader(Airport& inAirport): airport(inAirport) {}
@@ -160,7 +190,7 @@ public:
 
             while (iss >> seats >> price) {
                 endSeat = seats.substr(seats.find('-') + 1);
-                pricing[endSeat] = price;
+                pricing[stoi(endSeat)] = price;
             }
 
             airport.addPlane(flightNo, date, numSeat, pricing);
@@ -178,7 +208,12 @@ public:
     Helper (Airport& myAirport): airport(myAirport), id(1){}
 
     void check(const string& date, const string& flight) {
-
+        for (const auto& pair : airport.planes) {
+            const auto& key = pair.first;
+            Airplane* airplane = pair.second;
+            if (key.first == date && key.second == flight)
+                airplane->check();
+        }
     }
 
     void book(const string& date, const string& flight, const string& place, const string& userName) {
@@ -245,6 +280,8 @@ public:
 
 int main()
 {
+    bool isTrue = "C" == to_string('C');
+    cout << isTrue;
     Airport myAirport;
     FileReader file(myAirport);
     file.read();
@@ -255,7 +292,8 @@ int main()
     //helper.returnTicket(1);
     //helper.view(2);
     //helper.view(1);
-    helper.view("01.01.2023", "JK321");
+    //helper.view("01.01.2023", "JK321");
     //helper.view("Alla");
+    helper.check("01.01.2023", "JK321");
     return 0;
 }
