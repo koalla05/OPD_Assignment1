@@ -34,7 +34,7 @@ public:
         }
     }
     string getPrice(const string& row) {
-        auto it = pricing.lower_bound(stoi(row));
+        auto it = pricing.lower_bound(stoi(row) + 1); //+1 for edge case
 
         return it->second;
     }
@@ -280,20 +280,18 @@ public:
 
 int main()
 {
-    bool isTrue = "C" == to_string('C');
-    cout << isTrue;
     Airport myAirport;
     FileReader file(myAirport);
     file.read();
     Helper helper(myAirport);
-    helper.book("01.01.2023", "JK321", "1A", "Alla");
-    helper.book("03.01.2023", "LM654", "40B", "Alla");
-    helper.book("01.01.2023", "JK321", "1C", "V");
+    //helper.book("01.01.2023", "JK321", "1A", "Alla");
+    //helper.book("03.01.2023", "LM654", "40B", "Alla");
+    //helper.book("01.01.2023", "JK321", "1C", "V");
     //helper.returnTicket(1);
     //helper.view(2);
     //helper.view(1);
     //helper.view("01.01.2023", "JK321");
     //helper.view("Alla");
-    helper.check("01.01.2023", "JK321");
+    helper.check("07.03.2023", "PA345");
     return 0;
 }
