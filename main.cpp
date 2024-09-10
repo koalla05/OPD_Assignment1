@@ -33,6 +33,14 @@ public:
             linkedLists.emplace_back();
         }
     }
+    void removeNumber(vector<long>& v, int numberToRemove) {
+        for (auto it = v.begin(); it != v.end(); ) {
+            if (*it == numberToRemove)
+                it = v.erase(it);
+            else ++it;
+
+        }
+    }
     string getPrice(const string& row) {
         auto it = pricing.lower_bound(stoi(row) + 1); //+1 for edge case
 
@@ -45,8 +53,28 @@ public:
         string row = seat.substr(0, seat.size() - 1);
         string place = seat.substr(seat.size() - 1);
 
-        Ticket* ticket = new Ticket(userName, id, place, row); //made ticket
 
+        auto* ticket = new Ticket(userName, id, place, row); //made ticket
+
+        if (!linkedLists[stoi(row) - 1].empty()) {
+            auto& lists = linkedLists[stoi(row) - 1];
+            for (auto& map : lists) {
+                for (auto& entry : map) {
+                    if (entry.second->place == place) {
+                        cout << "Sorry, this place is already booked. Try another one." << endl;
+                        delete ticket; // Clean up to avoid memory leak
+                        return;
+                    }
+                }
+            }
+        }
+
+
+        if (!linkedLists[stoi(row) - 1].front().empty() && (linkedLists[stoi(row) - 1].front().find(ticket->id) != linkedLists[stoi(row) - 1].front().end())) {
+            cout << "Sorry, this place is already booked. Try another one." << endl;
+            delete ticket;
+            return;
+        }
         data[ticket->id] = ticket; //made a map
         //add this as a list element
         linkedLists[stoi(row) - 1].push_front(data); //-1 because it starts with zero
@@ -54,8 +82,8 @@ public:
 
     }
 
-    void findDelete(const long& ticketId){
-        //string price;
+    bool isFindDelete(const long& ticketId, unordered_map<string, vector<long>>& userIds){
+        bool found = false;
         for (size_t i = 0; i < booking.size(); ++i) {
             int startIndex = booking[i];
 
@@ -63,16 +91,26 @@ public:
                 auto& lists = linkedLists[startIndex];
 
                 for (auto it = lists.begin(); it != lists.end(); ) {
-                    auto mapIt = it->find(ticketId);
-                    if (mapIt != it->end()) {
+                    auto& map = *it;
+                    auto mapIt = map.find(ticketId);
+                    if (mapIt != map.end()) {
+                        found = true;
+
                         string price = getPrice(to_string(startIndex));
                         const Ticket* ticket = mapIt->second;
                         cout << "Confirmed " << price << " refund for " << ticket->userName << endl;
-                        it = lists.erase(it);
+                        map.erase(mapIt);
+                        removeNumber(userIds[ticket->userName], ticketId);
+                        break;
+
                     } else ++it;
+                }
+                if (found) {
+                    break;
                 }
             }
         }
+        return found;
     }
 
     unordered_map<long, Ticket*>::const_iterator view(const long& ticketId) const {
@@ -208,18 +246,23 @@ public:
     Helper (Airport& myAirport): airport(myAirport), id(1){}
 
     void check(const string& date, const string& flight) {
+        bool found = false;
         for (const auto& pair : airport.planes) {
             const auto& key = pair.first;
             Airplane* airplane = pair.second;
-            if (key.first == date && key.second == flight)
+            if (key.first == date && key.second == flight) {
                 airplane->check();
+                found = true;
+            }
         }
+        if (!found)
+            cout << "Sorry, no airplane in this day with this flight number :(" << endl;
     }
 
     void book(const string& date, const string& flight, const string& place, const string& userName) {
         auto plane = airport.planes[make_pair(date, flight)];
         if (plane==NULL)
-            cout << "Sorry, no airplane in this day with this flight number :(" << endl;
+            cout << "Sorry, no airplane in this day with this flight number to book a ticket :(" << endl;
         else {
             plane->book(place, userName, id);
             userIds[userName].push_back(id);
@@ -228,11 +271,13 @@ public:
     }
 
     void returnTicket(const long& id){
+        bool found = false;
         for (auto& pair : airport.planes) {
             const auto& key = pair.first;
             Airplane* airplane = pair.second;
-            airplane->findDelete(id);
+            found = airplane->isFindDelete(id, userIds);
         }
+        if (!found) cout << "No such ID" << endl;
     }
 
     void view(const long& id) {
@@ -256,12 +301,16 @@ public:
     }
 
     void view(const string& date, const string& flight) {
+        bool found = false;
         for (const auto& pair : airport.planes) {
             const auto& key = pair.first;
             Airplane* airplane = pair.second;
-            if (key.first == date && key.second == flight)
-            airplane->view();
+            if (key.first == date && key.second == flight){
+                airplane->view();
+                found = true;
+            }
         }
+        if (!found) cout << "No such a flight" << endl;
     }
 
     void view(const string& userName) {
@@ -274,7 +323,7 @@ public:
                 view(id);
                 k++;
             }
-        } else cout << "Sorry, it seems like nobode with sucn a name booked a place" << endl;
+        } else cout << "Sorry, it seems like nobody with such a name booked a place" << endl;
 
     }
 };
@@ -285,13 +334,15 @@ int main()
     FileReader file(myAirport);
     file.read();
     Helper helper(myAirport);
-    //helper.check("07.03.2023", "PA345");
+    //helper.check("0703.2023", "PA345");
     helper.book("07.03.2023", "PA345", "10A", "Alla");
-    helper.book("09.03.2023", "LB567", "30B", "Oliver");
+    helper.book("07.03.2023", "PA345", "11A", "Oliver");
+    helper.book("07.03.2023", "PA345", "12A", "Oliver");
     helper.book("11.03.2023", "NM678", "2D", "Alla");
-    //helper.view("Alla"); //delete user?
-    helper.view(2);
-    helper.returnTicket(1);
-    helper.view("09.03.2023", "LB567");
+    //helper.view("All"); //delete user?
+    //helper.view(6);
+    helper.returnTicket(2);
+    helper.view("Oliver");
+    //helper.view("0.03.2023", "LB567");
     return 0;
 }
